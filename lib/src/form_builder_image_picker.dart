@@ -86,6 +86,14 @@ class FormBuilderImagePicker extends FormBuilderFieldDecoration<List<dynamic>> {
 
   final void Function(Image)? onImage;
 
+  /// use this to apply changes on selected images before applying didChange.
+  ///
+  /// ```dart
+  /// (images, remainingImages) => (null != remainingImages && images.length > remainingImages) ? images.take(remainingImages) : images;
+  /// ```
+  final Iterable<XFile> Function(Iterable<XFile> images, int? remainingImages)?
+  onImageSelected;
+
   /// maximum images to pick
   ///
   /// also see [showDecoration],[previewAutoSizeWidth]
@@ -166,6 +174,7 @@ class FormBuilderImagePicker extends FormBuilderFieldDecoration<List<dynamic>> {
     this.imageQuality,
     this.preferredCameraDevice = CameraDevice.rear,
     this.onImage,
+    this.onImageSelected,
     this.maxImages,
     this.cameraIcon = const Icon(Icons.camera_enhance),
     this.galleryIcon = const Icon(Icons.image),
@@ -234,7 +243,11 @@ class FormBuilderImagePicker extends FormBuilderFieldDecoration<List<dynamic>> {
                  availableImageSources: availableImageSources,
                  onImageSelected: (image) {
                    state.focus();
-                   field.didChange([...value, ...image]);
+                   field.didChange([
+                     ...value,
+                     ...(onImageSelected?.call(image, remainingImages) ??
+                         image),
+                   ]);
                    Navigator.pop(state.context);
                  },
                );
